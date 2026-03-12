@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from ..services.hibp_service import check_email_breaches
 from ..services.risk_engine import calculate_risk, breach_severity
-from ..services.recommendations import generate_recommendations
+from ..services.ai_recommender import generate_ai_recommendations
 from ..utils.validators import is_valid_email
 
 breach_bp = Blueprint("breach_bp", __name__)
@@ -30,7 +30,7 @@ def check_email():
             })
 
         score, level = calculate_risk(breaches)
-        recommendations = generate_recommendations(score)
+        recommendations = generate_ai_recommendations(breaches, score, level)
 
         formatted = []
         exposed_categories = set()
@@ -44,6 +44,8 @@ def check_email():
                 "name": breach.get("Name"),
                 "domain": breach.get("Domain"),
                 "breach_date": breach.get("BreachDate"),
+                "logo" : breach.get("LogoPath"),
+                "description" : breach.get("Description"),
                 "exposed_data": data_classes,
                 "severity": breach_severity(data_classes)
             })
